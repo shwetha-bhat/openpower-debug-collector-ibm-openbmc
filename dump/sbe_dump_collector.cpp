@@ -3,10 +3,9 @@
 #include "sbe_consts.hpp"
 #include "sbe_type.hpp"
 
-// Use PHAL abstraction layer
-#include "../phal/chipop_iface.hpp"
-#include "../phal/error_iface.hpp"
-#include "../phal/targeting_iface.hpp"
+#include "chipop_iface.hpp"
+#include "error_iface.hpp"
+#include "targeting_iface.hpp"
 
 #ifdef LEGACY_PHAL
 #include "create_pel.hpp"
@@ -36,7 +35,6 @@ namespace openpower::dump::sbe_chipop
 using namespace phosphor::logging;
 using namespace openpower::dump::SBE;
 
-// Namespace aliases for PHAL abstraction layer
 namespace phal_tgt = openpower::dump::phal::targeting;
 namespace phal_cop = openpower::dump::phal::chipop;
 namespace phal_err = openpower::dump::phal::error;
@@ -92,8 +90,6 @@ void SbeDumpCollector::collectHWHBDump(uint8_t type, uint32_t id,
             // Hardware dump needs OCMB data if present
             if (type == openpower::dump::SBE::SBE_DUMP_TYPE_HARDWARE)
             {
-                // getAllOCMBTargets() already returns only functional Odyssey
-                // OCMBs
                 auto ocmbTargets = phal_tgt::getAllOCMBTargets(target);
                 targets[target] = ocmbTargets;
             }
@@ -307,11 +303,13 @@ std::vector<std::future<void>> SbeDumpCollector::spawnDumpCollectionProcesses(
 // Both backends translate their native error types to ChipOpError in
 // chipop_old.cpp / chipop_next.cpp before reaching this function.
 bool SbeDumpCollector::logErrorAndCreatePEL(
-    const phal_cop::ChipOpError& chipOpError, uint64_t chipPos,
-    SBETypes sbeType, [[maybe_unused]] uint32_t cmdClass,
-    [[maybe_unused]] uint32_t cmdType, const std::filesystem::path& path)
+    const phal_cop::ChipOpError& chipOpError,
+    phal_tgt::TargetHandle chipTarget, SBETypes sbeType,
+    [[maybe_unused]] uint32_t cmdClass, [[maybe_unused]] uint32_t cmdType,
+    const std::filesystem::path& path)
 {
-    std::string chipName;
+    std::string chipName{"unknown"};
+    auto chipPos = phal_tgt::chipPos(chipTarget);
     bool isDumpFailure = true;
     try
     {
@@ -362,40 +360,6 @@ bool SbeDumpCollector::logErrorAndCreatePEL(
             isDumpFailure = true;
         }
 
-        // Find the target handle for this chip position so we can pass it
-        // to createChipOpErrorPEL.  We look up by position in the proc list
-        // first, then OCMB list.
-        phal_tgt::TargetHandle chipTarget = nullptr;
-        {
-            auto procs = phal_tgt::getAllProcTargets();
-            for (auto t : procs)
-            {
-                if (phal_tgt::chipPos(t) == static_cast<uint32_t>(chipPos))
-                {
-                    chipTarget = t;
-                    break;
-                }
-            }
-            if (chipTarget == nullptr)
-            {
-                // Try OCMB targets under each proc
-                for (auto proc : procs)
-                {
-                    for (auto t : phal_tgt::getAllOCMBTargets(proc))
-                    {
-                        if (phal_tgt::chipPos(t) ==
-                            static_cast<uint32_t>(chipPos))
-                        {
-                            chipTarget = t;
-                            break;
-                        }
-                    }
-                    if (chipTarget != nullptr)
-                        break;
-                }
-            }
-        }
-
         if (chipTarget != nullptr && !event.empty())
         {
             // Create PEL via abstraction layer
@@ -414,7 +378,11 @@ bool SbeDumpCollector::logErrorAndCreatePEL(
                     auto [pelId, src] = openpower::dump::pel::getLogInfo(logId);
                     addLogDataToDump(pelId, src, chipName, chipPos, path);
                 }
-                catch (const std::exception& e)
+            }
+            if (chipTarget == nullptr)
+            {
+                // Try OCMB targets under each proc
+                for (auto proc : procs)
                 {
                     lg2::error("Failed to add log data to dump: {ERROR}",
                                "ERROR", e.what());
@@ -480,7 +448,7 @@ void SbeDumpCollector::collectDumpFromSBE(
         // Use logErrorAndCreatePEL() which handles PEL creation + errorInfo
         // file
         bool isDumpFailure = logErrorAndCreatePEL(
-            chipOpError, chipPos, sbeType, SBEFIFO_CMD_CLASS_DUMP,
+            chipOpError, chip, sbeType, SBEFIFO_CMD_CLASS_DUMP,
             SBEFIFO_CMD_GET_DUMP, path);
 
         if (isDumpFailure)
@@ -594,7 +562,7 @@ bool SbeDumpCollector::executeThreadStop(phal_tgt::TargetHandle target,
                    "POSITION", chipPos, "ERROR", chipOpError.what());
 
         // Use logErrorAndCreatePEL() for PEL creation + errorInfo file
-        logErrorAndCreatePEL(chipOpError, chipPos, SBETypes::PROC,
+        logErrorAndCreatePEL(chipOpError, target, SBETypes::PROC,
                              SBEFIFO_CMD_CLASS_INSTRUCTION,
                              SBEFIFO_CMD_CONTROL_INSN, path);
 

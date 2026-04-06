@@ -1,5 +1,3 @@
-#ifdef LEGACY_PHAL
-
 #include "chipop_iface.hpp"
 
 #include <libphal.H>
@@ -300,5 +298,3 @@ void finalizeSbeCollection(targeting::TargetHandle pibFsiTarget,
 }
 
 } // namespace openpower::dump::phal::chipop
-
-#endif // LEGACY_PHAL

@@ -16,12 +16,15 @@ collect_src = files(
     'sbe_type.cpp',
 )
 
-phal_inc = include_directories('../phal')
-
 # Only include create_pel for old PHAL backend
 phal_backend = get_option('phal_backend')
 if phal_backend == 'legacy'
     collect_src += files('create_pel.cpp')
+    # create_pel.cpp needs legacy PHAL libraries (libekb, phal)
+    collect_deps += [
+        cxx.find_library('phal'),
+        cxx.find_library('ekb'),
+    ]
 endif
 
 monitor_src = files(
@@ -29,6 +32,8 @@ monitor_src = files(
     'dump_monitor_main.cpp',
     'dump_utils.cpp',
 )
+
+phal_inc = include_directories('../phal')
 
 executable(
     'dump-collect',

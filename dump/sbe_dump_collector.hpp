@@ -202,9 +202,9 @@ class SbeDumpCollector
     /**
      * Logs an error and creates a PEL for SBE chip-op failures.
      *
-     * @param sbeError - An error object encapsulating details about the SBE
+     * @param chipOpError - An error object encapsulating details about the SBE
      * error.
-     * @param chipPos - The position of the chip where the error occurred.
+     * @param chipTarget - Target handle for the chip where the error occurred.
      * @param sbeType - The type of SBE, used to determine the event log
      * message.
      * @param cmdClass - The command class associated with the SBE operation.
@@ -213,8 +213,9 @@ class SbeDumpCollector
      *
      */
     bool logErrorAndCreatePEL(const phal::chipop::ChipOpError& chipOpError,
-                              uint64_t chipPos, SBETypes sbeType,
-                              uint32_t cmdClass, uint32_t cmdType,
+                              phal::targeting::TargetHandle chipTarget,
+                              SBETypes sbeType, uint32_t cmdClass,
+                              uint32_t cmdType,
                               const std::filesystem::path& path);
 
     /**

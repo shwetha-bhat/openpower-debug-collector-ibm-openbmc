@@ -136,7 +136,7 @@ struct ChipOpError : public std::exception
  * @brief Collect dump from SBE
  *
  * Old:  openpower::phal::sbe::getDump()
- * Next: hostfw::ipl::dump::getDump() — wrapper around sbei::getDump()
+ * Next: hostfw::dump::getDump() — wrapper around sbei::getDump()
  *
  * @param chip Target handle (proc or OCMB)
  * @param dumpType Type of dump to collect

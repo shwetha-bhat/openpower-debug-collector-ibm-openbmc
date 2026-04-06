@@ -3,7 +3,7 @@
 phal_backend = get_option('phal_backend')
 
 phal_deps = []
-phal_src  = []
+phal_src = []
 
 # phosphor-logging is always needed (lg2 used in all backends)
 phal_deps += [dependency('phosphor-logging')]
@@ -12,27 +12,25 @@ phal_deps += [dependency('phosphor-logging')]
 phal_deps += [dependency('sdbusplus')]
 
 if phal_backend == 'next'
-  add_project_arguments('-DNEXT_PHAL', language: 'cpp')
-  phal_deps += [
-    dependency('hostfw_phal'),
-  ]
-  phal_src  += files(
-    'targeting_next.cpp',
-    'chipop_next.cpp',
-    'error_next.cpp'
-  )
+    add_project_arguments('-DNEXT_PHAL', language: 'cpp')
+    phal_deps += [dependency('hostfw_phal')]
+    phal_src += files(
+        'chipop_next.cpp',
+        'error_next.cpp',
+        'targeting_next.cpp',
+    )
 else
-  add_project_arguments('-DLEGACY_PHAL', language: 'cpp')
-  phal_deps += [
-    cxx.find_library('pdbg'),
-    cxx.find_library('libdt-api'),
-    cxx.find_library('phal'),
-  ]
-  phal_src  += files(
-    'targeting_legacy.cpp',
-    'chipop_legacy.cpp',
-    'error_legacy.cpp'
-  )
+    add_project_arguments('-DLEGACY_PHAL', language: 'cpp')
+    phal_deps += [
+        cxx.find_library('pdbg'),
+        cxx.find_library('libdt-api'),
+        cxx.find_library('phal'),
+    ]
+    phal_src += files(
+        'chipop_legacy.cpp',
+        'error_legacy.cpp',
+        'targeting_legacy.cpp',
+    )
 endif
 
 # Build as a static library

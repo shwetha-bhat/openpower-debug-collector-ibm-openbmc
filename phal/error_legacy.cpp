@@ -1,5 +1,3 @@
-#ifdef LEGACY_PHAL
-
 #include "error_iface.hpp"
 
 #include <unistd.h>
@@ -162,5 +160,3 @@ uint32_t createChipOpErrorPEL(
 }
 
 } // namespace openpower::dump::phal::error
-
-#endif // LEGACY_PHAL

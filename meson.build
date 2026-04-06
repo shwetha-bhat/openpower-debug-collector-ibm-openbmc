@@ -49,7 +49,9 @@ endif
 
 deps = [CLI11_dep, sdbusplus_dep, phosphorlogging, extra_deps]
 
-if get_option('hostboot-dump-collection').allowed() and get_option('phal_backend') == 'legacy'
+if get_option('hostboot-dump-collection').allowed() and get_option(
+    'phal_backend',
+) == 'legacy'
     executable(
         'watchdog_timeout',
         'watchdog_timeout.cpp',

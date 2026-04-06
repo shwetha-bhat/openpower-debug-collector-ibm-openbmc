@@ -1,5 +1,3 @@
-#ifdef NEXT_PHAL
-
 #include "targeting_iface.hpp"
 
 #include <phosphor-logging/lg2.hpp>
@@ -31,7 +29,7 @@ TargetList getAllProcTargets()
         // Filter for functional targets only
         for (auto proc : procList)
         {
-            if (proc != nullptr && TARGETING::utils::isFunctional(proc))
+            if (TARGETING::utils::isFunctional(proc))
             {
                 result.push_back(proc);
             }
@@ -62,14 +60,15 @@ TargetList getAllOCMBTargets(TargetHandle proc)
 
     try
     {
-        // Get all OCMB chip targets under this processor
-        auto ocmbList =
-            TARGETING::utils::getChildTargets(proc, TARGETING::TYPE_OCMB_CHIP);
+        // Use getChildTargets to get OCMB chips directly associated with this processor
+        // This uses the affinity/association links, not physical hierarchy
+        auto ocmbList = TARGETING::utils::getChildTargets(
+            proc, TARGETING::TYPE_OCMB_CHIP, TARGETING::childByAffinity);
 
         // Filter for functional targets only
         for (auto ocmb : ocmbList)
         {
-            if (ocmb != nullptr && TARGETING::utils::isFunctional(ocmb))
+            if (TARGETING::utils::isFunctional(ocmb))
             {
                 result.push_back(ocmb);
             }
@@ -179,5 +178,3 @@ std::string debugPath(TargetHandle target)
 }
 
 } // namespace openpower::dump::phal::targeting
-
-#endif // NEXT_PHAL

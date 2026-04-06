@@ -1,5 +1,3 @@
-#ifdef NEXT_PHAL
-
 #include "chipop_iface.hpp"
 
 #include <dump.H>
@@ -65,7 +63,7 @@ DumpData getDump(targeting::TargetHandle chip, uint8_t dumpType,
     std::vector<uint8_t> dumpData;
 
     // Call dump module wrapper - handles target conversion internally
-    auto rc = hostfw::ipl::dump::getDump(chip, dumpType, clockState,
+    auto rc = hostfw::dump::getDump(chip, dumpType, clockState,
                                          collectFastArray, dumpData, ffdc);
     if (rc != 0)
     {
@@ -150,5 +148,3 @@ void finalizeSbeCollection(targeting::TargetHandle,
 }
 
 } // namespace openpower::dump::phal::chipop
-
-#endif // NEXT_PHAL

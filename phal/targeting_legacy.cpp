@@ -1,5 +1,3 @@
-#ifdef LEGACY_PHAL
-
 #include "targeting_iface.hpp"
 
 #include <libphal.H>
@@ -104,5 +102,3 @@ std::string debugPath(TargetHandle target)
 }
 
 } // namespace openpower::dump::phal::targeting
-
-#endif // LEGACY_PHAL
